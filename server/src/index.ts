@@ -484,6 +484,42 @@ cron.schedule('0 2,10 * * *', async () => {
     console.log(`✅ [CRON] Auto-pipeline complete: ${result.generated} posts generated`);
 });
 
+// Auto-refresh Instagram token every week (check + refresh if needed)
+cron.schedule('0 3 * * 1', async () => {
+    // Every Monday at 3:00 UTC (10:00 WIB)
+    console.log('\n🔄 [CRON] Checking Instagram token health...');
+    const { checkTokenHealth, refreshInstagramToken } = await import('./lib/token-refresh.js');
+    const health = await checkTokenHealth();
+
+    if (!health.valid) {
+        console.log('⚠️ Token invalid, attempting refresh...');
+        await refreshInstagramToken();
+    } else {
+        const daysLeft = Math.round((health.expiresIn || 0) / 86400);
+        console.log(`✅ Token valid, ${daysLeft} days remaining`);
+
+        // Refresh if less than 10 days left
+        if (daysLeft < 10) {
+            console.log('🔄 Less than 10 days, refreshing...');
+            await refreshInstagramToken();
+        }
+    }
+});
+
+// Initial token health check on startup
+(async () => {
+    try {
+        const { checkTokenHealth } = await import('./lib/token-refresh.js');
+        const health = await checkTokenHealth();
+        if (health.valid) {
+            const daysLeft = Math.round((health.expiresIn || 0) / 86400);
+            console.log(`📱 Instagram token: ✅ valid (${daysLeft} days left)`);
+        } else {
+            console.log('📱 Instagram token: ⚠️ invalid or expired');
+        }
+    } catch { }
+})();
+
 // ============================================
 // START SERVER
 // ============================================
