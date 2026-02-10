@@ -5,7 +5,8 @@
     "scripts": {
         "start": "node dist/index.js",
         "dev": "tsx watch src/index.ts",
-        "build": "tsc"
+        "build": "tsc",
+        "postinstall": "npx playwright install chromium --with-deps || true"
     },
     "dependencies": {
         "@supabase/supabase-js": "^2.39.0",
