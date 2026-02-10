@@ -528,10 +528,12 @@ cron.schedule('0 3 * * 1', async () => {
 // ============================================
 
 // SPA catch-all: serve index.html for any non-API route (React Router)
-app.get('*', (req, res) => {
-    const indexPath = path.join(frontendPath, 'index.html');
-    res.sendFile(indexPath);
-});
+const indexPath = path.join(frontendPath, 'index.html');
+if (fs.existsSync(indexPath)) {
+    app.get('*', (req, res) => {
+        res.sendFile(indexPath);
+    });
+}
 
 app.listen(PORT, () => {
     console.log(`

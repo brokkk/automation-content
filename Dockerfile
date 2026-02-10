@@ -1,4 +1,4 @@
-# Use official Playwright image - Chromium already installed
+# Use official Playwright image for system dependencies
 FROM mcr.microsoft.com/playwright:v1.52.0-noble
 
 WORKDIR /app
@@ -6,8 +6,11 @@ WORKDIR /app
 # Copy server package files
 COPY server/package*.json ./
 
-# Install dependencies (skip postinstall - Chromium already in image)
+# Install dependencies (skip postinstall to control install order)
 RUN npm install --ignore-scripts
+
+# Install Chromium matching the installed Playwright version
+RUN npx playwright install chromium
 
 # Copy server source
 COPY server/ ./
