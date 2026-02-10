@@ -3,6 +3,7 @@ import cors from 'cors';
 import cron from 'node-cron';
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { crawlAllSources } from './lib/rss-crawler.js';
 import { processIncomingItems, regenerateContent } from './lib/content-generator.js';
@@ -22,9 +23,11 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-// Serve frontend static files (built Vite app)
+// Serve frontend static files (built Vite app) - only if dist exists
 const frontendPath = path.join(__dirname, '../../dist');
-app.use(express.static(frontendPath));
+if (fs.existsSync(frontendPath)) {
+    app.use(express.static(frontendPath));
+}
 
 // ============================================
 // HEALTH CHECK
