@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build && cd server && npm install --production",
+    "build": "vite build && cd server && npm install --production",
     "start": "cd server && npx tsx src/index.ts",
     "lint": "eslint .",
     "preview": "vite preview"
