@@ -325,3 +325,37 @@ ${message}`;
 
     return sendTelegramMessage(text);
 }
+
+// ============================================
+// Send AI Image Selection (2 options)
+// ============================================
+export async function sendImageSelection(
+    contentId: string,
+    images: { label: string; url: string }[]
+): Promise<boolean> {
+    const settings = await getSettings();
+    if (!settings) return false;
+
+    // Send each image with a select button
+    for (const img of images) {
+        const caption = `🖼️ <b>Option ${img.label}</b>\n\nTap to select this image:`;
+        const keyboard = {
+            inline_keyboard: [
+                [{ text: `✅ Select Image ${img.label}`, callback_data: `select_image_${img.label.toLowerCase()}:${contentId}` }],
+            ],
+        };
+
+        await sendPhotoNotification(img.url, caption, keyboard);
+
+        // Small delay between sends
+        await new Promise(r => setTimeout(r, 500));
+    }
+
+    await sendTelegramMessage(
+        `🎨 <b>AI Image Options</b>\n\n` +
+        `${images.length} image${images.length > 1 ? 's' : ''} generated! Tap the button below the image you prefer.\n\n` +
+        `💡 <i>Each image uses a different style — pick the one that fits best.</i>`
+    );
+
+    return true;
+}

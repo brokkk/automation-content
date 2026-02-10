@@ -186,70 +186,69 @@ app.post('/api/telegram/webhook', async (req, res) => {
                 break;
             }
 
-            // 🖼️ REGEN IMAGE → Regenerate template image (re-render with current data)
+            // 🖼️ REGEN IMAGE (AI) → Generate 2 AI images with Flux, let user pick
             case 'regen_image': {
-                await answerCallbackQuery(callbackId, '🖼️ Regenerating image...');
+                await answerCallbackQuery(callbackId, '🎨 Generating AI images...');
 
                 try {
-                    // Get the content
-                    const { data: content } = await supabase
-                        .from('content_items')
-                        .select('*')
-                        .eq('id', contentId)
-                        .single();
-
-                    if (!content) {
-                        await sendTelegramMessage('❌ Content not found');
-                        break;
-                    }
-
-                    // Re-generate template image
-                    const { generateImage, closeBrowser } = await import('./lib/image-generator.js');
-
-                    const imageBuffer = await generateImage('instagram-post', {
-                        headline: content.headline || content.original_title || 'Untitled',
-                        subheadline: content.subheadline || content.image_subtext || '',
-                        category: 'Lifestyle',
-                        imageUrl: content.original_image || undefined,
-                        brandHandle: '@lifestylemedia',
-                    });
-
-                    // Upload to Supabase Storage
-                    const fileName = `content-images/${contentId}-regen-${Date.now()}.png`;
-                    const { error: uploadError } = await supabase.storage
-                        .from('generated-images')
-                        .upload(fileName, imageBuffer, { contentType: 'image/png', upsert: true });
-
-                    if (uploadError) {
-                        await sendTelegramMessage('⚠️ Image upload failed: ' + uploadError.message);
-                        break;
-                    }
-
-                    const { data: urlData } = supabase.storage
-                        .from('generated-images')
-                        .getPublicUrl(fileName);
-
-                    // Update DB
-                    await supabase
-                        .from('content_items')
-                        .update({ generated_image_url: urlData.publicUrl })
-                        .eq('id', contentId);
-
-                    // Re-send notification with new image
-                    const { data: updatedContent } = await supabase
-                        .from('content_items')
-                        .select('*')
-                        .eq('id', contentId)
-                        .single();
-
-                    if (updatedContent) {
-                        await sendApprovalNotification(updatedContent);
-                    }
-
-                    await closeBrowser();
+                    const { regenArticleImages } = await import('./lib/ai-image-generator.js');
+                    await regenArticleImages(contentId);
                 } catch (e) {
-                    console.error('Image regen error:', e);
-                    await sendTelegramMessage('❌ Image regeneration failed: ' + (e as Error).message);
+                    console.error('AI Image regen error:', e);
+                    await sendTelegramMessage('❌ AI Image generation failed: ' + (e as Error).message);
+                }
+                break;
+            }
+
+            // ✅ SELECT IMAGE A or B → User picked an AI-generated image
+            case 'select_image_a':
+            case 'select_image_b': {
+                const selectedLabel = action === 'select_image_a' ? 'A' : 'B';
+                await answerCallbackQuery(callbackId, `✅ Image ${selectedLabel} selected!`);
+
+                try {
+                    // Find the most recent AI-generated image for this label
+                    const prefix = `content-images/${contentId}-ai-${selectedLabel.toLowerCase()}-`;
+                    const { data: files } = await supabase.storage
+                        .from('generated-images')
+                        .list('content-images', {
+                            search: `${contentId}-ai-${selectedLabel.toLowerCase()}`,
+                            sortBy: { column: 'created_at', order: 'desc' },
+                            limit: 1,
+                        });
+
+                    if (files && files.length > 0) {
+                        const { data: urlData } = supabase.storage
+                            .from('generated-images')
+                            .getPublicUrl(`content-images/${files[0].name}`);
+
+                        // Update DB with selected image
+                        await supabase
+                            .from('content_items')
+                            .update({
+                                generated_image_url: urlData.publicUrl,
+                                updated_at: new Date().toISOString(),
+                            })
+                            .eq('id', contentId);
+
+                        await sendTelegramMessage(`✅ Image ${selectedLabel} selected and saved!`);
+
+                        // Re-send approval notification with new image
+                        const { data: updatedContent } = await supabase
+                            .from('content_items')
+                            .select('*')
+                            .eq('id', contentId)
+                            .single();
+
+                        if (updatedContent) {
+                            await sendApprovalNotification(updatedContent);
+                        }
+                    } else {
+                        await sendTelegramMessage('⚠️ Could not find the selected image. Try regenerating.');
+                    }
+                } catch (e) {
+                    console.error('Select image error:', e);
+                    await sendTelegramMessage('❌ Failed to select image: ' + (e as Error).message);
                 }
                 break;
             }
