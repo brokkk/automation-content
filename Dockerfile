@@ -1,35 +1,13 @@
-FROM node:20-slim
-
-# Install Playwright system dependencies
-RUN apt-get update && apt-get install -y \
-    libnss3 \
-    libatk1.0-0 \
-    libatk-bridge2.0-0 \
-    libcups2 \
-    libdrm2 \
-    libxkbcommon0 \
-    libxcomposite1 \
-    libxdamage1 \
-    libxrandr2 \
-    libgbm1 \
-    libpango-1.0-0 \
-    libcairo2 \
-    libasound2 \
-    libxshmfence1 \
-    fonts-noto-cjk \
-    fonts-freefont-ttf \
-    && rm -rf /var/lib/apt/lists/*
+# Use official Playwright image - Chromium already installed
+FROM mcr.microsoft.com/playwright:v1.52.0-noble
 
 WORKDIR /app
 
 # Copy server package files
 COPY server/package*.json ./
 
-# Install dependencies (without postinstall to avoid double install)
+# Install dependencies (skip postinstall - Chromium already in image)
 RUN npm install --ignore-scripts
-
-# Install Playwright Chromium
-RUN npx playwright install chromium
 
 # Copy server source
 COPY server/ ./
