@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import cron from 'node-cron';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { crawlAllSources } from './lib/rss-crawler.js';
 import { processIncomingItems, regenerateContent } from './lib/content-generator.js';
 import { supabase } from './lib/supabase.js';
@@ -11,11 +13,18 @@ import { handleCreateCommand, handleBreakingCommand, handleCreateArticleCallback
 
 dotenv.config();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
+
+// Serve frontend static files (built Vite app)
+const frontendPath = path.join(__dirname, '../../dist');
+app.use(express.static(frontendPath));
 
 // ============================================
 // HEALTH CHECK
@@ -478,6 +487,12 @@ cron.schedule('0 2,10 * * *', async () => {
 // ============================================
 // START SERVER
 // ============================================
+
+// SPA catch-all: serve index.html for any non-API route (React Router)
+app.get('*', (req, res) => {
+    const indexPath = path.join(frontendPath, 'index.html');
+    res.sendFile(indexPath);
+});
 
 app.listen(PORT, () => {
     console.log(`
