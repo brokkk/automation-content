@@ -335,11 +335,11 @@ export async function processArticleOptimized(
 
         // Get category name if available
         let categoryName = 'Lifestyle';
-        if (item.source?.category_id) {
+        if ((item as any).source?.category_id) {
             const { data: cat } = await supabase
                 .from('categories')
                 .select('name')
-                .eq('id', item.source.category_id)
+                .eq('id', (item as any).source.category_id)
                 .single();
             if (cat) categoryName = cat.name;
         }

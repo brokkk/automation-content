@@ -127,16 +127,16 @@ export async function handleBreakingCommand(keyword: string): Promise<void> {
     try {
         // Crawl Google News
         const { crawlGoogleNews } = await import('./rss-crawler.js');
-        const result = await crawlGoogleNews(keyword, { lang: 'id', country: 'ID' });
+        const result = await crawlGoogleNews(keyword, { lang: 'id', country: 'ID' }) as any;
 
-        console.log(`   Crawled: ${result.added || 0} new, ${result.total || 0} total`);
+        console.log(`   Crawled: ${result.saved || result.added || 0} new, ${result.fetched || result.total || 0} total`);
 
-        if (!result.added && !result.total) {
+        if (!result.saved && !result.added && !result.fetched && !result.total) {
             await sendTelegramMessage(`⚠️ Tidak ada hasil untuk "${keyword}". Coba keyword lain.`);
             return;
         }
 
-        await sendTelegramMessage(`✅ Ditemukan ${result.added || 0} artikel baru!\n\n🔍 Scoring dan memilih yang terbaik...`);
+        await sendTelegramMessage(`✅ Ditemukan ${result.saved || result.added || 0} artikel baru!\n\n🔍 Scoring dan memilih yang terbaik...`);
 
         // Get freshly crawled incoming articles (most recent ones)
         const { data: items } = await supabase

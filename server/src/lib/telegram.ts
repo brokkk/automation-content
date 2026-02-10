@@ -179,7 +179,7 @@ export async function sendApprovalNotification(item: ContentItem): Promise<boole
     }
 
     // Auto-generate template image if not available
-    let imageUrl = item.generated_image_url;
+    let imageUrl = (item as any).generated_image_url;
 
     if (!imageUrl) {
         console.log('     🎨 No template image found, generating...');
