@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1200, height=628">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 1200px;
+            height: 628px;
+            font-family: 'Inter', system-ui, sans-serif;
+            overflow: hidden;
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            position: relative;
+            background: #1a1f14;
+        }
+
+        /* Left side - Image */
+        .image-side {
+            width: 50%;
+            height: 100%;
+            position: relative;
+        }
+
+        .bg-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        /* Right side - Content */
+        .content-side {
+            width: 50%;
+            height: 100%;
+            padding: 48px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: #ffffff;
+        }
+
+        .category {
+            display: inline-block;
+            background: #8ce830;
+            color: #141811;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            width: fit-content;
+        }
+
+        .headline {
+            font-size: 36px;
+            font-weight: 800;
+            color: #141811;
+            line-height: 1.15;
+            margin-bottom: 16px;
+        }
+
+        .subheadline {
+            font-size: 18px;
+            font-weight: 400;
+            color: #758863;
+            line-height: 1.5;
+            margin-bottom: 32px;
+        }
+
+        .branding {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: auto;
+        }
+
+        .logo {
+            width: 36px;
+            height: 36px;
+            background: #8ce830;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 800;
+            color: #141811;
+        }
+
+        .brand-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: #758863;
+        }
+
+        /* Decorative accent */
+        .accent {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 4px;
+            height: 100px;
+            background: #8ce830;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <div class="image-side">
+            <!-- <img class="bg-image" src="{{IMAGE_URL}}" alt=""> -->
+            <div class="image-placeholder"></div>
+        </div>
+
+        <div class="content-side">
+            <div class="category">{{CATEGORY}}</div>
+            <h1 class="headline">{{HEADLINE}}</h1>
+            <p class="subheadline">{{SUBHEADLINE}}</p>
+
+            <div class="branding">
+                <div class="logo">AI</div>
+                <span class="brand-text">yourbrand.com</span>
+            </div>
+        </div>
+
+        <div class="accent"></div>
+    </div>
+</body>
+
+</html>

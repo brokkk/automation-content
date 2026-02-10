@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1080, height=1350">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 1080px;
+      height: 1350px;
+      font-family: 'Inter', system-ui, sans-serif;
+      overflow: hidden;
+    }
+
+    .card {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Gradient backgrounds */
+    .gradient-sunset {
+      background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+    }
+
+    .gradient-ocean {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .gradient-forest {
+      background: linear-gradient(135deg, #11998e 0%, #8ce830 100%);
+    }
+
+    .gradient-night {
+      background: linear-gradient(135deg, #232526 0%, #414345 100%);
+    }
+
+    .gradient-tech {
+      background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+    }
+
+    /* Image background */
+    .bg-image {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom,
+          rgba(0, 0, 0, 0) 0%,
+          rgba(0, 0, 0, 0.3) 50%,
+          rgba(0, 0, 0, 0.85) 100%);
+    }
+
+    .content {
+      position: relative;
+      z-index: 10;
+      padding: 60px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    .category {
+      display: inline-block;
+      background: #8ce830;
+      color: #141811;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      margin-bottom: 24px;
+      width: fit-content;
+    }
+
+    .headline {
+      font-size: 64px;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.1;
+      margin-bottom: 24px;
+      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .subheadline {
+      font-size: 28px;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.85);
+      line-height: 1.4;
+      margin-bottom: 48px;
+    }
+
+    .branding {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .logo {
+      width: 48px;
+      height: 48px;
+      background: #8ce830;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 800;
+      color: #141811;
+    }
+
+    .brand-text {
+      font-size: 20px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    /* Decorative elements */
+    .accent-line {
+      position: absolute;
+      top: 60px;
+      left: 60px;
+      width: 80px;
+      height: 6px;
+      background: #8ce830;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card gradient-tech">
+    <!-- Background image (optional) -->
+    <!-- <img class="bg-image" src="{{IMAGE_URL}}" alt=""> -->
+    <div class="overlay"></div>
+
+    <div class="accent-line"></div>
+
+    <div class="content">
+      <div class="category">{{CATEGORY}}</div>
+      <h1 class="headline">{{HEADLINE}}</h1>
+      <p class="subheadline">{{SUBHEADLINE}}</p>
+
+      <div class="branding">
+        <div class="logo">AI</div>
+        <span class="brand-text">@yourbrand</span>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
