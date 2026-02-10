@@ -1,0 +1,9 @@
+node_modules
+dist
+server/node_modules
+server/dist
+.env
+.env.local
+server/.env
+*.png
+ngrok.exe
