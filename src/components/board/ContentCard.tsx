@@ -10,13 +10,19 @@ interface ContentCardProps {
 const categoryColors: Record<string, string> = {
     Tech: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100',
     Design: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100',
+    Fashion: 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-100',
+    Sneakers: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100',
+    Food: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100',
+    Travel: 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-100',
+    Lifestyle: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-100',
+    News: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100',
     Finance: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100',
-    Marketing: 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-100',
+    Business: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-100',
 };
 
 function getCategoryClass(category?: Category): string {
     if (!category) return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100';
-    return categoryColors[category.name] || categoryColors.Tech;
+    return categoryColors[category.name] || 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100';
 }
 
 function getConfidenceColor(confidence?: number): string {
@@ -43,124 +49,84 @@ function formatTimeAgo(dateString: string): string {
 }
 
 export function ContentCard({ item, isSelected, onClick }: ContentCardProps) {
-    const hasImage = item.originalImage || item.status === 'ai_generated' || item.status === 'waiting_approval';
     const showConfidence = item.status === 'ai_generated' && item.aiConfidence;
-    const showPlatforms = item.status === 'waiting_approval' || item.status === 'approved';
+    const hasImage = item.originalImage || item.generatedImage;
 
     return (
         <div
             onClick={onClick}
-            className={`group bg-surface-light dark:bg-surface-dark p-3 rounded-xl shadow-sm cursor-pointer transition-all relative overflow-hidden ${isSelected
+            className={`group bg-surface-light dark:bg-surface-dark rounded-xl cursor-pointer transition-all relative overflow-hidden ${isSelected
                 ? 'border-2 border-primary shadow-lg bg-white dark:bg-[#2a3321]'
                 : 'border border-transparent hover:border-primary/30 hover:shadow-md'
                 }`}
         >
-            {/* Selected indicator */}
-            {isSelected && (
-                <div className="absolute -right-2 -top-2 bg-primary text-primary-content rounded-full p-1 shadow-md">
-                    <span className="material-symbols-outlined text-[14px] block">edit</span>
-                </div>
-            )}
-
-            {/* AI Generated glow effect */}
-            {item.status === 'ai_generated' && (
-                <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-primary/10 to-transparent rounded-bl-3xl -mr-2 -mt-2"></div>
-            )}
-
-            {/* Thumbnail */}
-            {hasImage && (
-                <div
-                    className="h-32 w-full rounded-lg mb-3 bg-cover bg-center"
-                    style={{
-                        backgroundImage: item.generatedImage
-                            ? `url(${item.generatedImage})`
-                            : item.originalImage
-                                ? `url(${item.originalImage})`
-                                : 'linear-gradient(to bottom right, #a855f7, #3b82f6)',
-                    }}
-                />
-            )}
-
-            {/* Header: Category + Time or Confidence */}
-            <div className="flex justify-between items-start mb-2">
-                {item.category && (
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${getCategoryClass(item.category)}`}>
-                        {item.category.name}
-                    </span>
+            {/* Compact layout: image left, text right */}
+            <div className="flex gap-3 p-3">
+                {/* Small thumbnail */}
+                {hasImage && (
+                    <div
+                        className="w-16 h-16 rounded-lg bg-cover bg-center flex-shrink-0"
+                        style={{
+                            backgroundImage: item.generatedImage
+                                ? `url(${item.generatedImage})`
+                                : item.originalImage
+                                    ? `url(${item.originalImage})`
+                                    : 'linear-gradient(to bottom right, #a855f7, #3b82f6)',
+                        }}
+                    />
                 )}
 
-                {showConfidence && item.aiConfidence ? (
-                    <div className={`flex items-center gap-1 ${getConfidenceColor(item.aiConfidence)}`}>
-                        <span className="material-symbols-outlined text-[16px]">bolt</span>
-                        <span className="text-xs font-bold">{Math.round(item.aiConfidence * 100)}% Confidence</span>
+                {/* Text content */}
+                <div className="flex-1 min-w-0">
+                    {/* Top row: Category + Time */}
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                        <div className="flex items-center gap-1.5">
+                            {item.category && (
+                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${getCategoryClass(item.category)}`}>
+                                    {item.category.name}
+                                </span>
+                            )}
+                            {showConfidence && item.aiConfidence && (
+                                <span className={`text-[10px] font-bold ${getConfidenceColor(item.aiConfidence)}`}>
+                                    {Math.round(item.aiConfidence * 100)}%
+                                </span>
+                            )}
+                        </div>
+                        <span className="text-[10px] text-text-muted flex-shrink-0">{formatTimeAgo(item.createdAt)}</span>
                     </div>
-                ) : (
-                    <span className="text-[10px] text-text-muted">{formatTimeAgo(item.createdAt)}</span>
-                )}
-            </div>
 
-            {/* Title */}
-            <h4 className="font-bold text-sm leading-tight mb-2 text-text-main dark:text-white group-hover:text-primary transition-colors">
-                {item.headline || item.originalTitle}
-            </h4>
+                    {/* Title — 2 lines max */}
+                    <h4 className="font-bold text-xs leading-tight text-text-main dark:text-white group-hover:text-primary transition-colors line-clamp-2">
+                        {item.headline || item.originalTitle}
+                    </h4>
 
-            {/* Source & Article Link - Show for all statuses */}
-            <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                    {item.source && (
-                        <>
-                            <div className="w-4 h-4 rounded-full bg-primary/30 flex items-center justify-center text-[8px] font-bold">
-                                {item.source.name.charAt(0)}
-                            </div>
-                            <span className="text-xs text-text-muted">{item.source.name}</span>
-                        </>
-                    )}
-                </div>
-                {item.originalUrl && (
-                    <a
-                        href={item.originalUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        className="flex items-center gap-1 text-xs text-primary hover:underline"
-                        title="Open original article"
-                    >
-                        <span className="material-symbols-outlined text-[14px]">open_in_new</span>
-                        Source
-                    </a>
-                )}
-            </div>
-
-            {/* Platforms (for approval stages) */}
-            {showPlatforms && (
-                <div className="flex items-center gap-2 mt-2">
-                    <div className="flex -space-x-2">
-                        {(item.platform === 'facebook' || item.platform === 'both') && (
-                            <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-[10px] border-2 border-white dark:border-surface-dark font-bold">
-                                fb
-                            </div>
-                        )}
-                        {(item.platform === 'instagram' || item.platform === 'both') && (
-                            <div className="w-6 h-6 rounded-full bg-pink-500 flex items-center justify-center text-white text-[10px] border-2 border-white dark:border-surface-dark font-bold">
-                                ig
-                            </div>
+                    {/* Bottom row: Source + Link */}
+                    <div className="flex items-center justify-between mt-1.5">
+                        <div className="flex items-center gap-1.5">
+                            {item.source && (
+                                <>
+                                    <div className="w-3.5 h-3.5 rounded-full bg-primary/30 flex items-center justify-center text-[7px] font-bold flex-shrink-0">
+                                        {item.source.name.charAt(0)}
+                                    </div>
+                                    <span className="text-[10px] text-text-muted truncate max-w-[80px]">{item.source.name}</span>
+                                </>
+                            )}
+                        </div>
+                        {item.originalUrl && (
+                            <a
+                                href={item.originalUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-[10px] text-primary hover:underline flex-shrink-0"
+                                title="Open original article"
+                            >
+                                <span className="material-symbols-outlined text-[12px]">open_in_new</span>
+                            </a>
                         )}
                     </div>
-                    <span className="text-xs text-text-muted ml-1">
-                        {item.status === 'approved' ? 'Approved' : 'Ready for review'}
-                    </span>
                 </div>
-            )}
-
-            {/* Approved status */}
-            {item.status === 'approved' && (
-                <div className="flex justify-between items-center mt-2">
-                    <p className="text-xs text-text-muted">
-                        {item.scheduledAt ? `Scheduled for ${new Date(item.scheduledAt).toLocaleDateString()}` : 'Ready to schedule'}
-                    </p>
-                    <span className="material-symbols-outlined text-green-500 text-[18px]">check_circle</span>
-                </div>
-            )}
+            </div>
         </div>
     );
 }

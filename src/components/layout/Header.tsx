@@ -34,21 +34,21 @@ export function Header({
     const toggleTheme = () => setIsDark(!isDark);
 
     return (
-        <header className="h-16 flex items-center justify-between px-8 border-b border-main bg-main">
+        <header className="h-14 flex items-center justify-between px-6 border-b border-main bg-main">
             <div className="flex items-center gap-4">
                 <h2 className="text-lg font-bold tracking-tight text-main">{title}</h2>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
                 {/* Search */}
                 <div className="relative group">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span className="material-symbols-outlined text-muted group-focus-within:text-primary transition-colors text-[20px]">
+                        <span className="material-symbols-outlined text-muted group-focus-within:text-primary transition-colors text-[18px]">
                             search
                         </span>
                     </div>
                     <input
-                        className="block w-64 pl-10 pr-3 py-2 border border-main rounded-full leading-5 bg-surface text-main placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/50 sm:text-sm transition-all"
+                        className="block w-56 pl-9 pr-3 py-1.5 border border-main rounded-full leading-5 bg-surface text-main placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm transition-all"
                         placeholder="Search content..."
                         type="text"
                         onChange={(e) => onSearch?.(e.target.value)}
@@ -58,27 +58,12 @@ export function Header({
                 {/* Theme Toggle */}
                 <button
                     onClick={toggleTheme}
-                    className="p-2 rounded-full hover:bg-surface transition-colors text-main theme-toggle"
+                    className="p-1.5 rounded-full hover:bg-surface transition-colors text-main theme-toggle"
                     title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
                 >
-                    <span className="material-symbols-outlined">
+                    <span className="material-symbols-outlined text-[20px]">
                         {isDark ? 'light_mode' : 'dark_mode'}
                     </span>
-                </button>
-
-                {/* Notification */}
-                <button className="relative p-2 rounded-full hover:bg-surface transition-colors text-main">
-                    <span className="material-symbols-outlined">notifications</span>
-                    <span className="absolute top-2 right-2 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
-                </button>
-
-                {/* Create Button */}
-                <button
-                    onClick={onNewPost}
-                    className="bg-primary hover:bg-primary/90 text-primary-content px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 shadow-sm transition-all"
-                >
-                    <span className="material-symbols-outlined text-[20px]">add</span>
-                    <span>New Post</span>
                 </button>
             </div>
         </header>

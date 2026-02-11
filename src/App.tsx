@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
 import { DetailPanel } from './components/layout/DetailPanel';
@@ -28,9 +28,11 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
 function PipelinePage() {
   const { items, loading, error, approve, reject, refetch } = useContentItems();
   const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
 
   // Map Supabase items to ContentItem type
-  const mappedItems: ContentItem[] = items.map(item => ({
+  const mappedItems: ContentItem[] = useMemo(() => items.map(item => ({
     id: item.id,
     status: item.status || 'incoming',
     headline: item.headline || item.original_title || 'Untitled',
@@ -60,7 +62,37 @@ function PipelinePage() {
       color: item.category.color || '#6B7280',
       isActive: item.category.is_active ?? true,
     } : undefined,
-  }));
+  })), [items]);
+
+  // Filter items by search query
+  const filteredItems = useMemo(() => {
+    let result = mappedItems;
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(item =>
+        item.headline.toLowerCase().includes(q) ||
+        item.originalTitle.toLowerCase().includes(q) ||
+        (item.source?.name || '').toLowerCase().includes(q) ||
+        (item.category?.name || '').toLowerCase().includes(q)
+      );
+    }
+
+    if (statusFilter !== 'all') {
+      result = result.filter(item => item.status === statusFilter);
+    }
+
+    return result;
+  }, [mappedItems, searchQuery, statusFilter]);
+
+  // Count items per status for filter badges
+  const statusCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: mappedItems.length };
+    mappedItems.forEach(item => {
+      counts[item.status] = (counts[item.status] || 0) + 1;
+    });
+    return counts;
+  }, [mappedItems]);
 
   const handleApprove = async () => {
     if (selectedItem) {
@@ -78,12 +110,48 @@ function PipelinePage() {
     }
   };
 
+  const filterOptions = [
+    { value: 'all', label: 'All' },
+    { value: 'incoming', label: 'Incoming' },
+    { value: 'ai_generated', label: 'AI Generated' },
+    { value: 'waiting_approval', label: 'Waiting' },
+    { value: 'approved', label: 'Approved' },
+    { value: 'published', label: 'Published' },
+    { value: 'rejected', label: 'Rejected' },
+  ];
+
   return (
     <>
       <Header
         title="Pipeline Dashboard"
+        onSearch={setSearchQuery}
         onNewPost={() => console.log('New Post clicked')}
       />
+
+      {/* Filter Bar */}
+      <div className="px-6 py-3 border-b border-main bg-main flex items-center gap-2 overflow-x-auto">
+        {filterOptions.map(opt => (
+          <button
+            key={opt.value}
+            onClick={() => setStatusFilter(opt.value)}
+            className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${statusFilter === opt.value
+                ? 'bg-primary text-primary-content shadow-sm'
+                : 'bg-surface text-muted hover:bg-surface hover:text-main'
+              }`}
+          >
+            {opt.label}
+            {(statusCounts[opt.value] || 0) > 0 && (
+              <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] ${statusFilter === opt.value
+                  ? 'bg-white/20'
+                  : 'bg-primary/10 text-primary'
+                }`}>
+                {statusCounts[opt.value] || 0}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
       <div className="flex flex-1 min-h-0">
         <div className="flex-1">
           {loading ? (
@@ -96,7 +164,7 @@ function PipelinePage() {
             </div>
           ) : (
             <KanbanBoard
-              items={mappedItems}
+              items={filteredItems}
               selectedItemId={selectedItem?.id}
               onSelectItem={setSelectedItem}
             />
