@@ -70,6 +70,42 @@ export async function sendTelegramMessage(
 }
 
 // ============================================
+// Edit existing message (for pagination)
+// ============================================
+export async function editMessageWithButtons(
+    chatId: string,
+    messageId: number,
+    text: string,
+    buttons: { text: string; callback_data: string }[][]
+): Promise<boolean> {
+    const settings = await getSettings();
+    if (!settings) return false;
+
+    try {
+        const response = await fetch(
+            `https://api.telegram.org/bot${settings.bot_token}/editMessageText`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    message_id: messageId,
+                    text,
+                    parse_mode: 'HTML',
+                    reply_markup: { inline_keyboard: buttons },
+                }),
+            }
+        );
+
+        const result = await response.json();
+        return result.ok === true;
+    } catch (error) {
+        console.error('     Telegram edit failed:', error);
+        return false;
+    }
+}
+
+// ============================================
 // CORE: Send Photo with Caption & Buttons
 // ============================================
 export async function sendPhotoNotification(
@@ -156,7 +192,10 @@ function buildApprovalKeyboard(contentId: string) {
                 { text: '✏️ Edit Headline', callback_data: `edit_headline:${contentId}` },
             ],
             [
+                { text: '✏️ Edit Subheadline', callback_data: `edit_subheadline:${contentId}` },
                 { text: '🖼️ Regen Image (AI)', callback_data: `regen_image:${contentId}` },
+            ],
+            [
                 { text: '❌ Reject', callback_data: `reject:${contentId}` },
             ],
         ],

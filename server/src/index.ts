@@ -10,7 +10,7 @@ import { processIncomingItems, regenerateContent } from './lib/content-generator
 import { supabase } from './lib/supabase.js';
 import { sendTelegramMessage, sendApprovalNotification, sendEditPrompt, answerCallbackQuery, editStates } from './lib/telegram.js';
 import { publishContentToInstagram } from './lib/instagram.js';
-import { handleCreateCommand, handleBreakingCommand, handleCreateArticleCallback } from './lib/telegram-commands.js';
+import { handleCreateCommand, handleBreakingCommand, handleCreateArticleCallback, handleCrawlCommand, handleBrowseCallback, handleBrowseCommand } from './lib/telegram-commands.js';
 
 dotenv.config();
 
@@ -96,8 +96,17 @@ app.post('/api/telegram/webhook', async (req, res) => {
     // ---- Handle button callbacks ----
     if (callback_query) {
         const { data, from, id: callbackId } = callback_query;
-        const [action, contentId] = data.split(':');
         const chatId = String(callback_query.message?.chat?.id || from.id);
+        const messageId = callback_query.message?.message_id;
+
+        // Browse callbacks use format br:page:mode:category
+        if (data.startsWith('br:')) {
+            await answerCallbackQuery(callbackId, '🔍 Loading...');
+            await handleBrowseCallback(chatId, messageId, data);
+            return res.json({ ok: true });
+        }
+
+        const [action, contentId] = data.split(':');
 
         console.log(`📱 Telegram callback: ${action} for ${contentId} from ${from.username}`);
 
@@ -183,6 +192,13 @@ app.post('/api/telegram/webhook', async (req, res) => {
             case 'edit_headline': {
                 await answerCallbackQuery(callbackId, '✏️ Edit mode: Headline');
                 await sendEditPrompt(chatId, contentId, 'headline');
+                break;
+            }
+
+            // ✏️ EDIT SUBHEADLINE → Enter edit mode
+            case 'edit_subheadline': {
+                await answerCallbackQuery(callbackId, '✏️ Edit mode: Subheadline');
+                await sendEditPrompt(chatId, contentId, 'subheadline');
                 break;
             }
 
@@ -284,6 +300,8 @@ app.post('/api/telegram/webhook', async (req, res) => {
                 updateData.ig_caption = newText;
             } else if (field === 'headline') {
                 updateData.headline = newText;
+            } else if (field === 'subheadline') {
+                updateData.image_subtext = newText;
             }
 
             await supabase
@@ -294,9 +312,9 @@ app.post('/api/telegram/webhook', async (req, res) => {
             // Clear edit state
             editStates.delete(chatId);
 
-            // If headline changed, re-generate template image
-            if (field === 'headline') {
-                await sendTelegramMessage('🎨 Headline updated! Regenerating template image...');
+            // If headline or subheadline changed, re-generate template image
+            if (field === 'headline' || field === 'subheadline') {
+                await sendTelegramMessage(`🎨 ${field === 'headline' ? 'Headline' : 'Subheadline'} updated! Regenerating template image...`);
 
                 try {
                     const { data: content } = await supabase
@@ -384,6 +402,16 @@ app.post('/api/telegram/webhook', async (req, res) => {
     if (message?.text?.startsWith('/breaking')) {
         const keyword = message.text.replace('/breaking', '').trim();
         await handleBreakingCommand(keyword);
+    }
+
+    // Handle /crawl command — full RSS crawl + paginated article browser
+    if (message?.text === '/crawl') {
+        await handleCrawlCommand();
+    }
+
+    // Handle /browse command — show articles from last crawl
+    if (message?.text === '/browse') {
+        await handleBrowseCommand();
     }
 
     res.json({ ok: true });
@@ -551,7 +579,9 @@ Endpoints:
   POST /api/generate              - Trigger AI generation
 
 Cron Jobs:
-  RSS Crawl + AI Generate: Every 2 hours
+  RSS Crawl: Every 6 hours (auto)
+  Auto-pipeline: 09:00 & 17:00 WIB
+  Manual: /crawl, /create, /breaking via Telegram
 ================================
   `);
 });
