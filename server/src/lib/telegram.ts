@@ -241,10 +241,21 @@ export async function sendApprovalNotification(item: ContentItem): Promise<boole
 
             const { generateImage, closeBrowser } = await import('./image-generator.js');
 
+            // Get category from source
+            let categoryLabel = 'Lifestyle';
+            if ((item as any).source_id) {
+                const { data: src } = await supabase
+                    .from('rss_sources')
+                    .select('category:categories(name)')
+                    .eq('id', (item as any).source_id)
+                    .single();
+                if ((src as any)?.category?.name) categoryLabel = (src as any).category.name;
+            }
+
             const imageBuffer = await generateImage('instagram-post', {
                 headline: item.headline || item.original_title || 'Untitled',
                 subheadline: item.subheadline || item.image_subtext || '',
-                category: 'News',
+                category: categoryLabel,
                 imageUrl: bgImageUrl || undefined,
                 brandHandle: '@lifestylemedia',
             });
@@ -279,36 +290,39 @@ export async function sendApprovalNotification(item: ContentItem): Promise<boole
         }
     }
 
-    // Build caption text (Telegram photo caption limit = 1024 chars)
+    // Build notification
     const headline = item.headline || item.original_title || 'Untitled';
     const subheadline = item.subheadline || item.image_subtext || '';
     const igCaption = item.ig_caption || '';
-    const truncatedCaption = igCaption.length > 400 ? igCaption.substring(0, 400) + '...' : igCaption;
 
-    const captionText = `🆕 <b>New Content Ready!</b>
+    // Short caption for photo (Telegram limit = 1024 chars)
+    const photoCaption = `🆕 <b>New Content Ready!</b>\n\n<b>📰 ${headline}</b>\n${subheadline ? `📌 ${subheadline}\n` : ''}\n🔗 <a href="${item.original_url}">Original Article</a>`;
 
-<b>📰 ${headline}</b>
-${subheadline ? `📌 ${subheadline}\n` : ''}
-📝 <b>Caption Preview:</b>
-${truncatedCaption}
-
-🔗 <a href="${item.original_url}">Original Article</a>`;
+    // Full caption as separate message
+    const fullCaptionMsg = `📝 <b>Full Caption:</b>\n\n${igCaption}`;
 
     const keyboard = buildApprovalKeyboard(item.id);
 
     // Send with template image
     if (imageUrl) {
         console.log('     Sending photo notification with template image...');
-        const photoSent = await sendPhotoNotification(imageUrl, captionText, keyboard);
+        const photoSent = await sendPhotoNotification(imageUrl, photoCaption, keyboard);
 
-        if (photoSent) return true;
+        if (photoSent) {
+            // Send full caption as separate message (no truncation)
+            if (igCaption.length > 0) {
+                await sendTelegramMessage(fullCaptionMsg);
+            }
+            return true;
+        }
 
         // Fallback: if photo fails, send text-only
         console.log('     Photo failed, falling back to text notification...');
     }
 
-    // Fallback: text-only notification
-    return sendTelegramMessage(captionText, keyboard);
+    // Fallback: text-only notification  
+    const fallbackText = `${photoCaption}\n\n📝 <b>Caption:</b>\n${igCaption}`;
+    return sendTelegramMessage(fallbackText, keyboard);
 }
 
 // ============================================

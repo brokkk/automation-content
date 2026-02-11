@@ -326,10 +326,21 @@ app.post('/api/telegram/webhook', async (req, res) => {
                     if (content) {
                         const { generateImage, closeBrowser } = await import('./lib/image-generator.js');
 
+                        // Get category from source
+                        let categoryLabel = 'Lifestyle';
+                        if (content.source_id) {
+                            const { data: src } = await supabase
+                                .from('rss_sources')
+                                .select('category:categories(name)')
+                                .eq('id', content.source_id)
+                                .single();
+                            if ((src as any)?.category?.name) categoryLabel = (src as any).category.name;
+                        }
+
                         const imageBuffer = await generateImage('instagram-post', {
                             headline: field === 'headline' ? newText : (content.headline || ''),
                             subheadline: field === 'subheadline' ? newText : (content.image_subtext || ''),
-                            category: 'Lifestyle',
+                            category: categoryLabel,
                             imageUrl: content.original_image || undefined,
                             brandHandle: '@lifestylemedia',
                         });
@@ -562,7 +573,7 @@ if (fs.existsSync(indexPath)) {
     });
 }
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log(`
 🚀 AI Content Pipeline Server
 ================================
@@ -584,4 +595,33 @@ Cron Jobs:
   Manual: /crawl, /create, /breaking via Telegram
 ================================
   `);
+
+    // Register Telegram bot menu commands
+    try {
+        const { data: settings } = await supabase
+            .from('telegram_settings')
+            .select('bot_token')
+            .eq('is_active', true)
+            .limit(1)
+            .single();
+
+        if (settings?.bot_token) {
+            const commands = [
+                { command: 'crawl', description: '🔄 Crawl RSS feeds & browse articles' },
+                { command: 'browse', description: '📋 Browse articles from last crawl' },
+                { command: 'create', description: '🔥 Create content from top articles' },
+                { command: 'breaking', description: '⚡ Breaking news (usage: /breaking keyword)' },
+                { command: 'cancel', description: '❌ Cancel current edit' },
+            ];
+
+            await fetch(`https://api.telegram.org/bot${settings.bot_token}/setMyCommands`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ commands }),
+            });
+            console.log('📱 Telegram bot menu: ✅ registered');
+        }
+    } catch (e) {
+        console.log('📱 Telegram bot menu: ⚠️ failed to register');
+    }
 });
