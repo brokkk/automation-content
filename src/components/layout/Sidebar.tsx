@@ -1,8 +1,13 @@
-import type { NavItem } from '../types';
+import { useLocation, Link } from 'react-router-dom';
+
+interface NavItem {
+    name: string;
+    icon: string;
+    href: string;
+}
 
 const navigation: NavItem[] = [
-    { name: 'Overview', icon: 'pie_chart', href: '/' },
-    { name: 'Content Pipeline', icon: 'view_kanban', href: '/', isActive: true },
+    { name: 'Content Pipeline', icon: 'view_kanban', href: '/' },
     { name: 'RSS Sources', icon: 'rss_feed', href: '/sources' },
     { name: 'Platform Settings', icon: 'tune', href: '/platforms' },
     { name: 'Image Generator', icon: 'image', href: '/images' },
@@ -11,14 +16,16 @@ const navigation: NavItem[] = [
 
 const bottomNav: NavItem[] = [
     { name: 'Telegram', icon: 'send', href: '/telegram' },
-    { name: 'Settings', icon: 'settings', href: '/settings' },
 ];
 
-interface SidebarProps {
-    activeItem?: string;
-}
+export function Sidebar() {
+    const location = useLocation();
 
-export function Sidebar({ activeItem = 'Content Pipeline' }: SidebarProps) {
+    const isActive = (href: string) => {
+        if (href === '/') return location.pathname === '/';
+        return location.pathname.startsWith(href);
+    };
+
     return (
         <aside className="w-64 flex-shrink-0 border-r border-main bg-main flex flex-col justify-between transition-colors duration-200">
             <div className="p-6">
@@ -33,19 +40,19 @@ export function Sidebar({ activeItem = 'Content Pipeline' }: SidebarProps) {
                 {/* Navigation */}
                 <nav className="flex flex-col gap-1">
                     {navigation.map((item) => {
-                        const isActive = item.name === activeItem;
+                        const active = isActive(item.href);
                         return (
-                            <a
+                            <Link
                                 key={item.name}
-                                href={item.href}
-                                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isActive
+                                to={item.href}
+                                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${active
                                     ? 'bg-primary/15 text-primary font-semibold'
                                     : 'text-muted hover:bg-surface hover:text-main'
                                     }`}
                             >
                                 <span className="material-symbols-outlined">{item.icon}</span>
                                 <span className="text-sm font-medium">{item.name}</span>
-                            </a>
+                            </Link>
                         );
                     })}
                 </nav>
@@ -53,27 +60,22 @@ export function Sidebar({ activeItem = 'Content Pipeline' }: SidebarProps) {
 
             {/* Bottom Actions */}
             <div className="p-6 border-t border-main">
-                {bottomNav.map((item) => (
-                    <a
-                        key={item.name}
-                        href={item.href}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted hover:bg-surface hover:text-main transition-colors"
-                    >
-                        <span className="material-symbols-outlined">{item.icon}</span>
-                        <span className="text-sm font-medium">{item.name}</span>
-                    </a>
-                ))}
-
-                {/* User Profile */}
-                <div className="mt-4 flex items-center gap-3 px-3">
-                    <div className="size-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
-                        AM
-                    </div>
-                    <div className="flex flex-col">
-                        <span className="text-xs font-bold text-main">Alex Morgan</span>
-                        <span className="text-[10px] text-muted">Pro Plan</span>
-                    </div>
-                </div>
+                {bottomNav.map((item) => {
+                    const active = isActive(item.href);
+                    return (
+                        <Link
+                            key={item.name}
+                            to={item.href}
+                            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${active
+                                ? 'bg-primary/15 text-primary font-semibold'
+                                : 'text-muted hover:bg-surface hover:text-main'
+                                }`}
+                        >
+                            <span className="material-symbols-outlined">{item.icon}</span>
+                            <span className="text-sm font-medium">{item.name}</span>
+                        </Link>
+                    );
+                })}
             </div>
         </aside>
     );

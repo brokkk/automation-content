@@ -17,7 +17,7 @@ import './index.css';
 function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="h-screen overflow-hidden flex bg-main text-main">
-      <Sidebar activeItem="Content Pipeline" />
+      <Sidebar />
       <main className="flex-1 flex flex-col h-full min-w-0 relative overflow-auto bg-surface">
         {children}
       </main>
@@ -135,15 +135,15 @@ function PipelinePage() {
             key={opt.value}
             onClick={() => setStatusFilter(opt.value)}
             className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${statusFilter === opt.value
-                ? 'bg-primary text-primary-content shadow-sm'
-                : 'bg-surface text-muted hover:bg-surface hover:text-main'
+              ? 'bg-primary text-primary-content shadow-sm'
+              : 'bg-surface text-muted hover:bg-surface hover:text-main'
               }`}
           >
             {opt.label}
             {(statusCounts[opt.value] || 0) > 0 && (
               <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] ${statusFilter === opt.value
-                  ? 'bg-white/20'
-                  : 'bg-primary/10 text-primary'
+                ? 'bg-white/20'
+                : 'bg-primary/10 text-primary'
                 }`}>
                 {statusCounts[opt.value] || 0}
               </span>
