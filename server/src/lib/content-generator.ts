@@ -119,7 +119,7 @@ const FULL_CONTENT_SYSTEM_PROMPT = `You are an expert social media content creat
 Output ONLY valid JSON in this exact format:
 {
   "headline": "Catchy headline (max 60 chars)",
-  "igCaption": "Full Instagram caption with emojis, line breaks, and 5-10 hashtags (max 2000 chars)",
+  "igCaption": "Full Instagram caption with emojis and line breaks. MUST have 2-3 paragraphs separated by empty lines. Paragraph 1: engaging hook. Paragraph 2: key points. Paragraph 3: call to discussion. Include 5-10 hashtags at the end (max 2000 chars)",
   "fbCaption": "Conversational Facebook caption (max 500 chars)",
   "imageHeadline": "BOLD text for image overlay (max 8 words, impactful)",
   "imageSubtext": "Supporting text for image (MAXIMUM 100 characters, 1-2 short sentences)",

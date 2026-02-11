@@ -116,7 +116,7 @@ ${!useEmoji ? '- JANGAN gunakan emoji sama sekali' : ''}
 
 Generate JSON dengan struktur ini:
 {
-  "igCaption": "Caption Instagram dalam Bahasa Indonesia (${igMin}-${igMax} karakter). Tulis sebagai paragraf yang mengalir dengan hook menarik di awal, poin-poin penting dari artikel, dan ajakan untuk diskusi di akhir.${useEmoji ? ' Gunakan 2-3 emoji yang relevan.' : ' TANPA emoji.'}",
+  "igCaption": "Caption Instagram dalam Bahasa Indonesia (${igMin}-${igMax} karakter). WAJIB dibagi minimal 2-3 paragraf yang dipisahkan oleh baris kosong (\\n\\n). Paragraf 1: hook menarik yang bikin penasaran. Paragraf 2: poin-poin penting dari artikel. Paragraf 3: ajakan untuk diskusi atau opini.${useEmoji ? ' Gunakan 2-3 emoji yang relevan di awal paragraf.' : ' TANPA emoji.'}",
   "fbCaption": "Caption Facebook dalam Bahasa Indonesia (${fbMin}-${fbMax} karakter). Tulis sebagai paragraf panjang dengan opening engaging, ringkasan artikel, dan pertanyaan di akhir.${useEmoji ? '' : ' TANPA emoji.'}",
   "imageHeadline": "Headline bold untuk gambar dalam Bahasa Indonesia (max 8 kata)",
   "imageSubtext": "Teks pendukung singkat untuk gambar dalam Bahasa Indonesia (MAKSIMAL 100 karakter, 1-2 kalimat pendek yang melengkapi headline)",
