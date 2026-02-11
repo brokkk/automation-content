@@ -196,10 +196,22 @@ export async function publishContentToInstagram(contentId: string): Promise<Inst
             }
 
             const { generateImage, closeBrowser } = await import('./image-generator.js');
+
+            // Get category from source
+            let categoryLabel = 'Lifestyle';
+            if (content.source_id) {
+                const { data: src } = await supabase
+                    .from('rss_sources')
+                    .select('category:categories(name)')
+                    .eq('id', content.source_id)
+                    .single();
+                if ((src as any)?.category?.name) categoryLabel = (src as any).category.name;
+            }
+
             const imageBuffer = await generateImage('instagram-post', {
                 headline: content.headline || content.original_title || 'Untitled',
                 subheadline: content.subheadline || content.image_subtext || '',
-                category: 'News',
+                category: categoryLabel,
                 imageUrl: bgImageUrl || undefined,
                 brandHandle: '@lifestylemedia',
             });
