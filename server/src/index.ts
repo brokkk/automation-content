@@ -327,8 +327,8 @@ app.post('/api/telegram/webhook', async (req, res) => {
                         const { generateImage, closeBrowser } = await import('./lib/image-generator.js');
 
                         const imageBuffer = await generateImage('instagram-post', {
-                            headline: newText,
-                            subheadline: content.image_subtext || '',
+                            headline: field === 'headline' ? newText : (content.headline || ''),
+                            subheadline: field === 'subheadline' ? newText : (content.image_subtext || ''),
                             category: 'Lifestyle',
                             imageUrl: content.original_image || undefined,
                             brandHandle: '@lifestylemedia',
